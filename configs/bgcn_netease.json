@@ -26,6 +26,6 @@
   "device": "cuda",
   "seed": 2026,
   "save_dir": "checkpoints",
-  "dataset": "ifashion",
-  "data_dir": "data/processed/ifashion"
+  "dataset": "netease",
+  "data_dir": "data/processed/netease"
 }

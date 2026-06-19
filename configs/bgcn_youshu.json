@@ -1,24 +1,31 @@
 {
   "model": "bgcn",
-  "dataset": "youshu",
-  "data_dir": "data/processed/youshu",
-
-  "official_root": "third_party/BGCN",
-  "implementation": "official_adapter",
-
-  "epochs": 20,
+  "implementation": "self_contained_adopted",
+  "epochs": 100,
   "batch_size": 2048,
   "embedding_dim": 64,
+  "embedding_size": 64,
   "lr": 0.001,
   "weight_decay": 0.0001,
-
-  "topk": [10, 20, 40],
+  "l2_reg": 0.0001,
+  "embed_L2_norm": 0.0001,
+  "optimizer_weight_decay": 0.0,
+  "num_layers": 2,
+  "message_dropout": 0.1,
+  "node_dropout": 0.1,
+  "neg_num": 1,
+  "topk": [
+    20,
+    40,
+    80
+  ],
   "main_metric": "Recall@20",
-  "eval_interval": 1,
-
+  "eval_interval": 5,
+  "drop_last": true,
   "num_workers": 2,
   "device": "cuda",
   "seed": 2026,
-
-  "save_dir": "checkpoints"
+  "save_dir": "checkpoints",
+  "dataset": "youshu",
+  "data_dir": "data/processed/youshu"
 }

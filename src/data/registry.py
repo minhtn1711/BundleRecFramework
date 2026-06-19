@@ -3,7 +3,8 @@ from src.data.bundle_dataset import GeneralBundleDataset
 
 DATASET_REGISTRY = {
     "youshu": GeneralBundleDataset,
-    "ifashion": GeneralBundleDataset
+    "ifashion": GeneralBundleDataset,
+    "netease": GeneralBundleDataset
 }
 
 
