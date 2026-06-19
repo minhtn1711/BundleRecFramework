@@ -3,8 +3,7 @@
   "dataset": "youshu",
   "data_dir": "data/processed/youshu",
 
-  "official_root": "third_party/CrossCBR",
-  "implementation": "official_adapter",
+  "implementation": "self_contained_adopted",
 
   "epochs": 100,
   "batch_size": 2048,
