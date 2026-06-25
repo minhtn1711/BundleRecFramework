@@ -14,3 +14,18 @@ third_party/
 *.pth
 *.ckpt
 .DS_Store
+
+# MovieLens data
+experiments/item_attack/ml-100k/
+experiments/item_attack/ml-100k.zip
+
+# Generated outputs
+experiments/item_attack/outputs/
+
+# Plot/report artifacts
+experiments/item_attack/plot_attack_results.py
+
+# Python cache
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
