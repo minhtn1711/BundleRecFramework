@@ -7,25 +7,6 @@ from src.metrics.ranking import evaluate_topk
 
 
 class RecTrainer:
-    """
-    General trainer for bundle recommendation.
-
-    This trainer is model-agnostic:
-        - no model-specific if/else
-        - no CrossCBR-specific logic
-        - no BGCN-specific logic
-
-    Model-specific behavior should be implemented inside model classes through:
-        calculate_loss(batch)
-        predict(users)
-
-    Optional hooks:
-        set_train_context(num_batches)
-        on_epoch_start(epoch)
-        on_epoch_end(epoch)
-        clear_cache()
-    """
-
     def __init__(self, model, data, config, device):
         self.model = model
         self.data = data
@@ -33,13 +14,10 @@ class RecTrainer:
         self.device = device
 
         self.model.to(self.device)
-
         self.train_loader = data.get_train_loader()
 
         if hasattr(self.model, "set_train_context"):
-            self.model.set_train_context(
-                num_batches=len(self.train_loader)
-            )
+            self.model.set_train_context(num_batches=len(self.train_loader))
 
         self.optimizer = self.build_optimizer()
 
@@ -50,13 +28,55 @@ class RecTrainer:
             "main_metric",
             f"Recall@{max(config['topk'])}"
         )
-
         self.eval_interval = config.get("eval_interval", 1)
+
         self.best_score = -1.0
+        self.global_step = 0
+
+        self.use_wandb = bool(config.get("use_wandb", False))
+        self.wandb_run = None
+
+        if self.use_wandb:
+            self.init_wandb()
+
+    def init_wandb(self):
+        try:
+            import wandb
+        except ImportError:
+            raise ImportError("wandb is not installed. Run: pip install wandb")
+
+        project = self.config.get("wandb_project", "BundleRecFramework")
+        entity = self.config.get("wandb_entity", None)
+        mode = self.config.get("wandb_mode", "online")
+
+        run_name = self.config.get("wandb_run_name", None)
+        if run_name is None:
+            run_name = f"{self.config.get('model', 'model')}-{self.config.get('dataset', 'dataset')}"
+
+        self.wandb_run = wandb.init(
+            project=project,
+            entity=entity,
+            name=run_name,
+            config=self.config,
+            mode=mode
+        )
+
+        wandb.define_metric("epoch")
+        wandb.define_metric("train/*", step_metric="epoch")
+        wandb.define_metric("val/*", step_metric="epoch")
+        wandb.define_metric("test/*", step_metric="epoch")
+
+        print(f"[W&B] enabled: project={project}, run={run_name}, mode={mode}")
+
+    def wandb_log(self, log_dict, step=None):
+        if not self.use_wandb or self.wandb_run is None:
+            return
+
+        import wandb
+        wandb.log(log_dict, step=step)
 
     def build_optimizer(self):
         optimizer_name = self.config.get("optimizer", "adam").lower()
-
         lr = self.config["lr"]
 
         optimizer_weight_decay = self.config.get(
@@ -80,18 +100,19 @@ class RecTrainer:
 
         raise ValueError(f"Unknown optimizer: {optimizer_name}")
 
+    def get_lr(self):
+        return self.optimizer.param_groups[0]["lr"]
+
     def move_batch_to_device(self, batch):
         if isinstance(batch, dict):
             return {
-                key: value.to(self.device)
-                if hasattr(value, "to") else value
+                key: value.to(self.device) if hasattr(value, "to") else value
                 for key, value in batch.items()
             }
 
         if isinstance(batch, (list, tuple)):
             return [
-                value.to(self.device)
-                if hasattr(value, "to") else value
+                value.to(self.device) if hasattr(value, "to") else value
                 for value in batch
             ]
 
@@ -107,6 +128,7 @@ class RecTrainer:
             self.model.on_epoch_start(epoch)
 
         total_loss = 0.0
+        log_step_interval = self.config.get("log_step_interval", 20)
 
         progress_bar = tqdm(
             self.train_loader,
@@ -115,6 +137,8 @@ class RecTrainer:
         )
 
         for batch_idx, batch in enumerate(progress_bar):
+            self.global_step += 1
+
             batch = self.move_batch_to_device(batch)
 
             if hasattr(self.model, "on_batch_start"):
@@ -129,13 +153,36 @@ class RecTrainer:
             if hasattr(self.model, "on_batch_end"):
                 self.model.on_batch_end(epoch, batch_idx)
 
-            total_loss += loss.item()
-            progress_bar.set_postfix(loss=f"{loss.item():.4f}")
+            loss_value = loss.item()
+            total_loss += loss_value
+
+            progress_bar.set_postfix(loss=f"{loss_value:.4f}")
+
+            if self.use_wandb and self.global_step % log_step_interval == 0:
+                self.wandb_log(
+                    {
+                        "train/batch_loss": loss_value,
+                        "train/lr": self.get_lr(),
+                        "epoch": epoch,
+                        "batch_idx": batch_idx
+                    },
+                    step=self.global_step
+                )
 
         if hasattr(self.model, "on_epoch_end"):
             self.model.on_epoch_end(epoch)
 
         avg_loss = total_loss / max(len(self.train_loader), 1)
+
+        self.wandb_log(
+            {
+                "train/epoch_loss": avg_loss,
+                "train/lr": self.get_lr(),
+                "epoch": epoch
+            },
+            step=self.global_step
+        )
+
         return avg_loss
 
     def evaluate(self, split="test"):
@@ -154,13 +201,26 @@ class RecTrainer:
 
         return result
 
+    def log_eval_result(self, result, split, epoch):
+        log_dict = {"epoch": epoch}
+
+        for metric_name, metric_value in result.items():
+            log_dict[f"{split}/{metric_name}"] = metric_value
+
+        if split == "val":
+            log_dict["val/main_metric"] = result.get(self.main_metric, 0.0)
+
+        if split == "test":
+            log_dict["test/main_metric"] = result.get(self.main_metric, 0.0)
+
+        self.wandb_log(log_dict, step=self.global_step)
+
     def _checkpoint_path(self, tag):
         filename = (
             f"{self.config['model']}_"
             f"{self.config['dataset']}_"
             f"{tag}.pt"
         )
-
         return os.path.join(self.save_dir, filename)
 
     def save_checkpoint(self, epoch, result, tag):
@@ -179,6 +239,15 @@ class RecTrainer:
 
         print(f"[Checkpoint] saved {tag}: {path}")
 
+        if self.use_wandb and tag == "best":
+            self.wandb_log(
+                {
+                    "best/epoch": epoch,
+                    "best/score": result.get(self.main_metric, 0.0)
+                },
+                step=self.global_step
+            )
+
     def save_config_snapshot(self):
         path = os.path.join(
             self.save_dir,
@@ -190,6 +259,19 @@ class RecTrainer:
 
         print(f"[Config] saved snapshot: {path}")
 
+    def finish_wandb(self, test_result=None):
+        if not self.use_wandb or self.wandb_run is None:
+            return
+
+        if test_result is not None:
+            for metric_name, metric_value in test_result.items():
+                self.wandb_run.summary[f"final_test/{metric_name}"] = metric_value
+
+            self.wandb_run.summary["best_score"] = self.best_score
+            self.wandb_run.summary["main_metric"] = self.main_metric
+
+        self.wandb_run.finish()
+
     def train(self):
         epochs = self.config["epochs"]
 
@@ -199,28 +281,46 @@ class RecTrainer:
         self.save_config_snapshot()
 
         last_val_result = {}
+        test_result = None
 
-        for epoch in range(1, epochs + 1):
-            train_loss = self.train_one_epoch(epoch)
-            print(f"[Epoch {epoch}] train_loss = {train_loss:.6f}")
+        try:
+            for epoch in range(1, epochs + 1):
+                train_loss = self.train_one_epoch(epoch)
 
-            if epoch % self.eval_interval == 0:
-                val_result = self.evaluate(split="val")
-                last_val_result = val_result
+                print(f"[Epoch {epoch}] train_loss = {train_loss:.6f}")
 
-                print(f"[Epoch {epoch}] val_result = {val_result}")
+                if epoch % self.eval_interval == 0:
+                    val_result = self.evaluate(split="val")
+                    last_val_result = val_result
 
-                current_score = val_result.get(self.main_metric, 0.0)
+                    print(f"[Epoch {epoch}] val_result = {val_result}")
 
-                if current_score > self.best_score:
-                    self.best_score = current_score
-                    self.save_checkpoint(epoch, val_result, tag="best")
+                    self.log_eval_result(
+                        result=val_result,
+                        split="val",
+                        epoch=epoch
+                    )
 
-            self.save_checkpoint(epoch, last_val_result, tag="last")
+                    current_score = val_result.get(self.main_metric, 0.0)
 
-        test_result = self.evaluate(split="test")
+                    if current_score > self.best_score:
+                        self.best_score = current_score
+                        self.save_checkpoint(epoch, val_result, tag="best")
 
-        print("[Final Test Result]")
-        print(test_result)
+                self.save_checkpoint(epoch, last_val_result, tag="last")
 
-        return test_result
+            test_result = self.evaluate(split="test")
+
+            print("[Final Test Result]")
+            print(test_result)
+
+            self.log_eval_result(
+                result=test_result,
+                split="test",
+                epoch=epochs
+            )
+
+            return test_result
+
+        finally:
+            self.finish_wandb(test_result)

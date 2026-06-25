@@ -1,0 +1,159 @@
+_wandb:
+    value:
+        cli_version: 0.25.1
+        e:
+            bwi472679fvsy53r7ej2o5xbp1vwd1qp:
+                args:
+                    - --config
+                    - configs/bgcn_ifashion.json
+                    - --epochs
+                    - "3"
+                    - --use_wandb
+                    - --wandb_project
+                    - BundleRecFramework
+                    - --wandb_run_name
+                    - bgcn-ifashion-wandb-test
+                    - --log_step_interval
+                    - "20"
+                codePath: scripts/train.py
+                codePathLocal: scripts/train.py
+                cpu_count: 2
+                cpu_count_logical: 4
+                cudaVersion: "13.0"
+                disk:
+                    /:
+                        total: "8656922775552"
+                        used: "7473628622848"
+                email: minhnagonatluyu@gmail.com
+                executable: /usr/bin/python3
+                git:
+                    commit: 5e6a3bc3974fb8b41b1340db184cacd141c784c3
+                    remote: https://github.com/minhtn1711/BundleRecFramework.git
+                gpu: Tesla T4
+                gpu_count: 2
+                gpu_nvidia:
+                    - architecture: Turing
+                      cudaCores: 2560
+                      memoryTotal: "16106127360"
+                      name: Tesla T4
+                      uuid: GPU-f70c2b14-c585-f084-d10a-a6db86793368
+                    - architecture: Turing
+                      cudaCores: 2560
+                      memoryTotal: "16106127360"
+                      name: Tesla T4
+                      uuid: GPU-53858270-5d43-32fe-3745-3190aa5aaf62
+                host: 8394a7a788d6
+                memory:
+                    total: "33659383808"
+                os: Linux-6.12.90+-x86_64-with-glibc2.35
+                program: /kaggle/working/BundleRecFramework/scripts/train.py
+                python: CPython 3.12.13
+                root: /kaggle/working/BundleRecFramework
+                startedAt: "2026-06-25T02:46:12.467301Z"
+                writerId: bwi472679fvsy53r7ej2o5xbp1vwd1qp
+        m:
+            - "1": epoch
+              "6":
+                - 3
+              "7": []
+            - "2": train/*
+              "5": 1
+              "6":
+                - 1
+              "7": []
+            - "2": val/*
+              "5": 1
+              "6":
+                - 1
+              "7": []
+            - "2": test/*
+              "5": 1
+              "6":
+                - 1
+              "7": []
+        python_version: 3.12.13
+        t:
+            "1":
+                - 1
+                - 105
+            "2":
+                - 1
+                - 105
+            "3":
+                - 2
+                - 7
+                - 13
+                - 16
+                - 61
+                - 62
+            "4": 3.12.13
+            "5": 0.25.1
+            "8":
+                - 2
+            "12": 0.25.1
+            "13": linux-x86_64
+batch_size:
+    value: 2048
+data_dir:
+    value: data/processed/ifashion
+dataset:
+    value: ifashion
+device:
+    value: cuda
+drop_last:
+    value: true
+embed_L2_norm:
+    value: 0.0001
+embedding_dim:
+    value: 64
+embedding_size:
+    value: 64
+epochs:
+    value: 3
+eval_interval:
+    value: 5
+implementation:
+    value: self_contained_adopted
+l2_reg:
+    value: 0.0001
+log_step_interval:
+    value: 20
+lr:
+    value: 0.001
+main_metric:
+    value: Recall@20
+message_dropout:
+    value: 0.1
+model:
+    value: bgcn
+neg_num:
+    value: 1
+node_dropout:
+    value: 0.1
+num_layers:
+    value: 2
+num_workers:
+    value: 2
+optimizer_weight_decay:
+    value: 0
+save_dir:
+    value: checkpoints
+seed:
+    value: 2026
+topk:
+    value:
+        - 20
+        - 40
+        - 80
+use_wandb:
+    value: true
+wandb_entity:
+    value: null
+wandb_mode:
+    value: online
+wandb_project:
+    value: BundleRecFramework
+wandb_run_name:
+    value: bgcn-ifashion-wandb-test
+weight_decay:
+    value: 0.0001

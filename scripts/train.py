@@ -34,6 +34,14 @@ def parse_args():
     parser.add_argument("--topk", type=str, default=None)
     parser.add_argument("--main_metric", type=str, default=None)
 
+
+    parser.add_argument("--use_wandb", action="store_true")
+    parser.add_argument("--wandb_project", type=str, default="BundleRecFramework")
+    parser.add_argument("--wandb_entity", type=str, default=None)
+    parser.add_argument("--wandb_run_name", type=str, default=None)
+    parser.add_argument("--wandb_mode", type=str, default="online")
+    parser.add_argument("--log_step_interval", type=int, default=20)
+
     return parser.parse_args()
 
 
@@ -81,6 +89,14 @@ def build_config(args):
 
     if args.main_metric is not None:
         config["main_metric"] = args.main_metric
+
+
+    config["use_wandb"] = args.use_wandb
+    config["wandb_project"] = args.wandb_project
+    config["wandb_entity"] = args.wandb_entity
+    config["wandb_run_name"] = args.wandb_run_name
+    config["wandb_mode"] = args.wandb_mode
+    config["log_step_interval"] = args.log_step_interval
 
     return config
 

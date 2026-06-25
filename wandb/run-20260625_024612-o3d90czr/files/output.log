@@ -1,0 +1,15 @@
+[W&B] enabled: project=BundleRecFramework, run=bgcn-ifashion-wandb-test, mode=online
+[Trainer] main_metric = Recall@20
+[Trainer] eval_interval = 5
+[Config] saved snapshot: checkpoints/bgcn_ifashion_config.json
+Epoch 1: 100%|███████████████████████████████████████| 592/592 [04:12<00:00,  2.34it/s, loss=0.4322]
+[Epoch 1] train_loss = 0.496609
+[Checkpoint] saved last: checkpoints/bgcn_ifashion_last.pt
+Epoch 2: 100%|███████████████████████████████████████| 592/592 [04:16<00:00,  2.31it/s, loss=0.3541]
+[Epoch 2] train_loss = 0.357158
+[Checkpoint] saved last: checkpoints/bgcn_ifashion_last.pt
+Epoch 3: 100%|███████████████████████████████████████| 592/592 [04:16<00:00,  2.31it/s, loss=0.3012]
+[Epoch 3] train_loss = 0.301788
+[Checkpoint] saved last: checkpoints/bgcn_ifashion_last.pt
+[Final Test Result]
+{'Recall@20': 0.03609178607158886, 'NDCG@20': 0.023847313414335828, 'Recall@40': 0.061923940164687837, 'NDCG@40': 0.03295930544465941, 'Recall@80': 0.10250068528280706, 'NDCG@80': 0.0450578320759517}

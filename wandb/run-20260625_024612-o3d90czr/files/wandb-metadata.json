@@ -1,0 +1,60 @@
+{
+  "os": "Linux-6.12.90+-x86_64-with-glibc2.35",
+  "python": "CPython 3.12.13",
+  "startedAt": "2026-06-25T02:46:12.467301Z",
+  "args": [
+    "--config",
+    "configs/bgcn_ifashion.json",
+    "--epochs",
+    "3",
+    "--use_wandb",
+    "--wandb_project",
+    "BundleRecFramework",
+    "--wandb_run_name",
+    "bgcn-ifashion-wandb-test",
+    "--log_step_interval",
+    "20"
+  ],
+  "program": "/kaggle/working/BundleRecFramework/scripts/train.py",
+  "codePath": "scripts/train.py",
+  "codePathLocal": "scripts/train.py",
+  "git": {
+    "remote": "https://github.com/minhtn1711/BundleRecFramework.git",
+    "commit": "5e6a3bc3974fb8b41b1340db184cacd141c784c3"
+  },
+  "email": "minhnagonatluyu@gmail.com",
+  "root": "/kaggle/working/BundleRecFramework",
+  "host": "8394a7a788d6",
+  "executable": "/usr/bin/python3",
+  "cpu_count": 2,
+  "cpu_count_logical": 4,
+  "gpu": "Tesla T4",
+  "gpu_count": 2,
+  "disk": {
+    "/": {
+      "total": "8656922775552",
+      "used": "7473628622848"
+    }
+  },
+  "memory": {
+    "total": "33659383808"
+  },
+  "gpu_nvidia": [
+    {
+      "name": "Tesla T4",
+      "memoryTotal": "16106127360",
+      "cudaCores": 2560,
+      "architecture": "Turing",
+      "uuid": "GPU-f70c2b14-c585-f084-d10a-a6db86793368"
+    },
+    {
+      "name": "Tesla T4",
+      "memoryTotal": "16106127360",
+      "cudaCores": 2560,
+      "architecture": "Turing",
+      "uuid": "GPU-53858270-5d43-32fe-3745-3190aa5aaf62"
+    }
+  ],
+  "cudaVersion": "13.0",
+  "writerId": "bwi472679fvsy53r7ej2o5xbp1vwd1qp"
+}
